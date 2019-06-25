@@ -16,9 +16,7 @@ session_start();
  //test si le formulaire et remplie
  if (isset($_POST["send"])) {
 // sécurisation des variable
-   $pseudo = htmlspecialchars($_POST["pseudo"]);
-   $mail = htmlspecialchars($_POST["mail"]);
-   $mail_confirmation = htmlspecialchars($_POST["mailconf"]);
+
    $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
    $password_conf = password_hash($_POST["passwordconf"], PASSWORD_DEFAULT);
 //test global du site, champs vide, nb de caractère, mail et mots de passe de confirmation
@@ -26,41 +24,48 @@ session_start();
 
 // TODO: remplacer request par post, changer le test du mdp , essayer fetch au lieu de rowCount
 
-     $pseudolength = strlen($pseudo);
+     $pseudolength = strlen($_POST["pseudo"]);
         if ($pseudolength <= 255 ) {
-                  if ($mail == $mail_confirmation) {
-                    if (filter_var($mail, FILTER_VALIDATE_EMAIL)) {
-                      if ($password == $password_conf) {
-                        // requete sur membre pour conter le nombre de fois ou l'email entré dans le form correspond a un email de la bdd
-                        $reqmail = $bdd->prepare("SELECT * FROM membre WHERE email = ?");
-                        $reqmail->execute(array($mail));
-                        $mailexist = $reqmail->rowCount();
-                        if ($mailexist == 0) {
-                          // si le mail apparait 0 fois dans la bdd alors on insert les information utilisateur dans la bdd
-                          $insertmbr = $bdd->prepare('INSERT INTO membre(pseudo, email, mot_de_passe) VALUES(?, ?, ?)');
-                          $insertmbr->execute(array($pseudo, $mail, $password));
-                          $erreur = "Votre compte a bien étais crée";
+                  if ($_POST["mail"] == $_POST["mailconf"]) {
+                    if (filter_var($_POST["mail"], FILTER_VALIDATE_EMAIL)) {
+                      if ($_POST["password"] == $_POST["passwordconf"]) {
+                        $reqpseudo = $bdd->prepare("SELECT * FROM membre WHERE pseudo = ?");
+                        $reqpseudo->execute(array($_POST["pseudo"]));
+                        $pseudoexist = $reqpseudo->fetch();
+                        if ($pseudoexist == 0) {
+                          $reqmail = $bdd->prepare("SELECT * FROM membre WHERE email = ? AND ");
+                          $reqmail->execute(array($_POST["mail"]));
+                          $mailexist = $reqmail->fetch();
+                          if ($mailexist == 0) {
+                            // si le mail apparait 0 fois dans la bdd alors on insert les information utilisateur dans la bdd
+                            //requête pour insertion de membre
+                            $insertmbr = $bdd->prepare('INSERT INTO membre(pseudo, email, mot_de_passe) VALUES(?, ?, ?)');
+                            $insertmbr->execute(array($_POST["pseudo"], $_POST["mail"], $password));
+                            $erreur = "Votre compte a bien étais crée";
+                          }else {
+                            $erreur = "Adresse mail déja utilisé";
+                          }
                         }else {
-                          $erreur = "Adresse mail déja utilisé";
+                          $erreur = "pseudo deja existant";
                         }
                       }else {
                         $erreur = "les mots de passe ne correspondent pas";
                       }
 
-                    }else {
-                      $erreur = "Votre email n'est pas valide";
-                    }
                   }else {
-                    $erreur = "Vos email ne correspondent pas";
+                    $erreur = "votre email n'est pas valide";
                   }
                 }else {
-          $erreur = "Votre pseudo ne doit pas contenir plus de 255 caractère !";
-        }
-
+                  $erreur = "vos email ne correspondent pas";
+                }
+              }else{
+                $erreur="votre pseudo ne doit pas dépasser 255 caractère!";
+              }
    }else{
      $erreur = "Tous les champs doivent être remplie";
    }
- }
+}
+
  ?>
     <div align="center">
     <h3>Inscription</h3><br />
@@ -77,15 +82,15 @@ session_start();
   <ul>
     <li>
         <label for="pseudo">Pseudo: </label>
-        <input type="text" name="pseudo" id="pseudo" class="field-style field-split align-left" placeholder="Entrez votre Pseudo" value="<?php if (isset($pseudo)) {echo $pseudo;}?>">
+        <input type="text" name="pseudo" id="pseudo" class="field-style field-split align-left" placeholder="Entrez votre Pseudo" value="<?php if (isset($_POST["pseudo"])) {echo $_POST["pseudo"];}?>">
     </li>
    <li>
      <label for="prenom">Email: </label>
-     <input type="email" name="mail" id ="mail"  class="field-style field-split align-left"  placeholder="Entrez votre email" value="<?php if (isset($mail)) {echo $mail;}?>">
+     <input type="email" name="mail" id ="mail"  class="field-style field-split align-left"  placeholder="Entrez votre email" value="<?php if (isset($_POST["mail"])) {echo $_POST["mail"];}?>">
    </li>
    <li>
      <label for="prenom">Confirmation mail: </label>
-     <input type="email" name="mailconf" id ="mailconf"  class="field-style field-split align-right"  placeholder="Confirmer votre mail" value="<?php if (isset($mail_confirmation)) {echo $mail_confirmation;}?>">
+     <input type="email" name="mailconf" id ="mailconf"  class="field-style field-split align-right"  placeholder="Confirmer votre mail" value="<?php if (isset($_POST["mailconf"])) {echo $_POST["mailconf"];}?>">
    </li>
    <li>
      <label for="password" >Mot de passe: </label>
