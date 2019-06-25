@@ -14,15 +14,15 @@ session_start();
  <?php
  include('config.php');
  //test si le formulaire et remplie
- if (isset($_REQUEST["send"])) {
+ if (isset($_POST["send"])) {
 // sécurisation des variable
-   $pseudo = htmlspecialchars($_REQUEST["pseudo"]);
-   $mail = htmlspecialchars($_REQUEST["mail"]);
-   $mail_confirmation = htmlspecialchars($_REQUEST["mailconf"]);
-   $password = password_hash($_REQUEST["password"], PASSWORD_DEFAULT);
-   $password_conf = password_hash($_REQUEST["passwordconf"], PASSWORD_DEFAULT);
+   $pseudo = htmlspecialchars($_POST["pseudo"]);
+   $mail = htmlspecialchars($_POST["mail"]);
+   $mail_confirmation = htmlspecialchars($_POST["mailconf"]);
+   $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
+   $password_conf = password_hash($_POST["passwordconf"], PASSWORD_DEFAULT);
 //test global du site, champs vide, nb de caractère, mail et mots de passe de confirmation
-   if(!empty($_REQUEST["pseudo"])  AND !empty($_REQUEST["mail"]) AND !empty($_REQUEST["password"]) AND !empty($_REQUEST["mailconf"]) AND !empty($_REQUEST["passwordconf"])){
+   if(!empty($_POST["pseudo"])  AND !empty($_POST["mail"]) AND !empty($_POST["password"]) AND !empty($_POST["mailconf"]) AND !empty($_POST["passwordconf"])){
 
 // TODO: remplacer request par post, changer le test du mdp , essayer fetch au lieu de rowCount
 
