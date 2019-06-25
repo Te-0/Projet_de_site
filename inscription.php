@@ -16,33 +16,29 @@ session_start();
  //test si le formulaire et remplie
  if (isset($_REQUEST["send"])) {
 // sécurisation des variable
-   $nom = htmlspecialchars($_REQUEST["nom"]);
-   $prenom = htmlspecialchars($_REQUEST["prenom"]);
+   $pseudo = htmlspecialchars($_REQUEST["pseudo"]);
    $mail = htmlspecialchars($_REQUEST["mail"]);
    $mail_confirmation = htmlspecialchars($_REQUEST["mailconf"]);
-   $password = sha1($_REQUEST["password"]);
-   $password_conf = sha1($_REQUEST["passwordconf"]);
+   $password = password_hash($_REQUEST["password"], PASSWORD_DEFAULT);
+   $password_conf = password_hash($_REQUEST["passwordconf"], PASSWORD_DEFAULT);
 //test global du site, champs vide, nb de caractère, mail et mots de passe de confirmation
-   if(!empty($_REQUEST["nom"]) AND !empty($_REQUEST["prenom"]) AND !empty($_REQUEST["mail"]) AND !empty($_REQUEST["password"]) AND !empty($_REQUEST["mailconf"]) AND !empty($_REQUEST["passwordconf"]) AND !empty($_REQUEST["date_n"])){
+   if(!empty($_REQUEST["pseudo"])  AND !empty($_REQUEST["mail"]) AND !empty($_REQUEST["password"]) AND !empty($_REQUEST["mailconf"]) AND !empty($_REQUEST["passwordconf"])){
 
-     $nomlength = strlen($nom);
-     $prenomlength = strlen($prenom);
-        if ($nomlength <= 255 ) {
-            if ($prenomlength <= 255) {
-               if (preg_match('#^([0-9]{2})(/-)([0-9]{2})\2([0-9]{4})$#', $_REQUEST["date_n"], $m) == 1 && checkdate($m[3], $m[1], $m[4]))  {
-                if(date('d/m/Y') > $_REQUEST["date_n"]) {
-                  $erreur = "date non valide";
-                }else {
+// TODO: remplacer request par post, changer le test du mdp , essayer fetch au lieu de rowCount
+
+     $pseudolength = strlen($pseudo);
+        if ($pseudolength <= 255 ) {
                   if ($mail == $mail_confirmation) {
                     if (filter_var($mail, FILTER_VALIDATE_EMAIL)) {
-                      if ($password == $passwordconf) {
+                      if ($password == $password_conf) {
                         // requete sur membre pour conter le nombre de fois ou l'email entré dans le form correspond a un email de la bdd
-                        $reqmail = $bdd->query("SELECT * FROM membre WHERE email = '".$mail."'");
+                        $reqmail = $bdd->prepare("SELECT * FROM membre WHERE email = ?");
+                        $reqmail->execute(array($mail));
                         $mailexist = $reqmail->rowCount();
                         if ($mailexist == 0) {
                           // si le mail apparait 0 fois dans la bdd alors on insert les information utilisateur dans la bdd
-                          $insertmbr = $bdd->prepare('INSERT INTO membre(nom, prenom, date_naissance, email, mot_de_passe) VALUES(?, ?, ?, ?)');
-                          $insertmbr->execute(array($nom, $prenom, $_REQUEST["date_n"], $mail, $password));
+                          $insertmbr = $bdd->prepare('INSERT INTO membre(pseudo, email, mot_de_passe) VALUES(?, ?, ?)');
+                          $insertmbr->execute(array($pseudo, $mail, $password));
                           $erreur = "Votre compte a bien étais crée";
                         }else {
                           $erreur = "Adresse mail déja utilisé";
@@ -57,17 +53,8 @@ session_start();
                   }else {
                     $erreur = "Vos email ne correspondent pas";
                   }
-                }
-
-              }else {
-                $erreur = "le format de la date n'est pas respecter";
-              }
-
-            }else {
-              $erreur = "Votre prénom ne doit pas contenir plus de 255 caractère !";
-            }
-        }else {
-          $erreur = "Votre nom ne doit pas contenir plus de 255 caractère !";
+                }else {
+          $erreur = "Votre pseudo ne doit pas contenir plus de 255 caractère !";
         }
 
    }else{
@@ -89,17 +76,9 @@ session_start();
    </div>
   <ul>
     <li>
-        <label for="nom">Nom: </label>
-        <input type="text" name="nom" id="nom" class="field-style field-split align-left" placeholder="Entrez votre nom" value="<?php if (isset($nom)) {echo $nom;}?>">
+        <label for="pseudo">Pseudo: </label>
+        <input type="text" name="pseudo" id="pseudo" class="field-style field-split align-left" placeholder="Entrez votre Pseudo" value="<?php if (isset($pseudo)) {echo $pseudo;}?>">
     </li>
-    <li>
-     <label for="prenom">Prénom: </label>
-       <input type="text" name="prenom" id ="prenom"  class="field-style field-split align-right"  placeholder="Entrez votre prénom" value="<?php if (isset($prenom)) {echo $prenom;}?>">
-   </li>
-   <li>
-    <label for="date_naissance">Date de naissance: </label>
-      <input type="date" name="date_n" id ="date_n"  class="field-style field-split align-right"  value="<?php if (isset($_REQUEST["date_n"])) {echo $_REQUEST["date_n"];}?>">
-  </li>
    <li>
      <label for="prenom">Email: </label>
      <input type="email" name="mail" id ="mail"  class="field-style field-split align-left"  placeholder="Entrez votre email" value="<?php if (isset($mail)) {echo $mail;}?>">

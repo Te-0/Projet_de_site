@@ -81,6 +81,7 @@ h3{
 	padding: 8px 18px;
 	text-decoration: none;
 	font: 12px Arial, Helvetica, sans-serif;
+  border-radius: 15px;
 }
 .form_item ul li input[type="button"]:hover,
 .form_item ul li input[type="submit"]:hover {
